@@ -45,7 +45,7 @@ model Transaction {
   approvedById     String?
   user             User     @relation(fields: [userId], references: [id])
   userId           String
-  approved         Boolean  @default(true)
+  status           String  @default("APPROVED")
   createdAt        DateTime @default(now())
 }
 

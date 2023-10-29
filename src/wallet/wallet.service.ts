@@ -45,6 +45,7 @@ export class WalletService {
     try {
         const { id, isAdmin } = user;
         const{currency, amount}=fundWalletDto
+        if(isAdmin) throw new UnauthorizedException("Admin cannot fund wallet")
         const wallet = await this.repositoryService.wallet.findFirst({
             where:{
                 id:walletId,
@@ -54,7 +55,7 @@ export class WalletService {
         if(!wallet)throw new NotFoundException(`wallet does not exist`)
         const existingBalance= wallet.balance
         const balance = existingBalance + amount;
-        if(isAdmin) throw new UnauthorizedException("Admin cannot fund wallet")
+      
       
         if(wallet.currency !== currency) throw new ConflictException("wrong currency")
 
