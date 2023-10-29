@@ -11,55 +11,57 @@ datasource db {
 }
 
 model User {
-  id           String        @id 
-  phoneNumber  String        @unique 
-  password_hash    String
-  salt    String
-  isAdmin       Boolean    @default(false)
-  wallets      Wallet[] 
-  transactions Transaction[] 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String        @id
+  phoneNumber   String        @unique
+  password_hash String
+  salt          String
+  isAdmin       Boolean       @default(false)
+  wallets       Wallet[]
+  transactions  Transaction[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
 model Wallet {
-  id                   String        @id 
-  currency             String 
-  balance              Float 
+  id                   String        @id
+  currency             String
+  balance              Float
   owner                User          @relation(fields: [ownerId], references: [id]) // User who owns the wallet
-  ownerId              String 
-  transfers            Transaction[] @relation("FromWallet") 
+  ownerId              String
+  transfers            Transaction[] @relation("FromWallet")
   receivedTransactions Transaction[] @relation("ToWallet")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
 }
+
 model Transaction {
-  id                  String  @id 
-  amount              Float 
-  sourceWallet        Wallet  @relation("FromWallet", fields: [sourceWalletId], references: [id]) // Source wallet for the transaction
-  sourceWalletId      String 
-  destinationWallet   Wallet  @relation("ToWallet", fields: [destinationWalletId], references: [id]) // Destination wallet for the transaction
+  id                  String   @id
+  amount              Float
+  sourceWallet        Wallet   @relation("FromWallet", fields: [sourceWalletId], references: [id]) // Source wallet for the transaction
+  sourceWalletId      String
+  destinationWallet   Wallet   @relation("ToWallet", fields: [destinationWalletId], references: [id]) // Destination wallet for the transaction
   destinationWalletId String
-  approvedBy          Admin?  @relation("Approval", fields: [approvedById], references: [id]) // Approved by an admin (optional)
-  approvedById        String? 
-  user                User    @relation(fields: [userId], references: [id]) // User who initiated the transaction
-  userId              String 
-  createdAt DateTime @default(now())
+  approvedBy          Admin?   @relation("Approval", fields: [approvedById], references: [id]) // Approved by an admin (optional)
+  approvedById        String?
+  user                User     @relation(fields: [userId], references: [id]) // User who initiated the transaction
+  userId              String
+  createdAt           DateTime @default(now())
 }
 
 model Admin {
-  id                   String           @id 
-  phoneNumber          String           @unique 
-  password_hash             String 
-    salt    String
-  approvedTransactions Transaction[]    @relation("Approval") 
-  paymentSummaries     PaymentSummary[] 
+  id                   String           @id
+  phoneNumber          String           @unique
+  password_hash        String
+  salt                 String
+  isAdmin              Boolean          @default(true)
+  approvedTransactions Transaction[]    @relation("Approval")
+  paymentSummaries     PaymentSummary[]
 }
 
 model PaymentSummary {
-  id      String @id 
-  admin   Admin  @relation(fields: [adminId], references: [id]) 
-  adminId  String
+  id      String @id
+  admin   Admin  @relation(fields: [adminId], references: [id])
+  adminId String
   month   Int
   year    Int
 }
