@@ -26,26 +26,27 @@ model Wallet {
   id                   String        @id
   currency             String
   balance              Float         @default(0)
-  user                User          @relation(fields: [userId], references: [id]) // User who owns the wallet
-  userId              String
-  transfers            Transaction[] @relation("FromWallet")
+  user                 User          @relation(fields: [userId], references: [id])
+  userId               String
+  sentTransactions     Transaction[] @relation("FromWallet")
   receivedTransactions Transaction[] @relation("ToWallet")
   createdAt            DateTime      @default(now())
   updatedAt            DateTime      @updatedAt
 }
 
 model Transaction {
-  id                  String   @id
-  amount              Float
-  sourceWallet        Wallet   @relation("FromWallet", fields: [sourceWalletId], references: [id]) // Source wallet for the transaction
-  sourceWalletId      String
-  destinationWallet   Wallet   @relation("ToWallet", fields: [destinationWalletId], references: [id]) // Destination wallet for the transaction
-  destinationWalletId String
-  approvedBy          Admin?   @relation("Approval", fields: [approvedById], references: [id]) // Approved by an admin (optional)
-  approvedById        String?
-  user                User     @relation(fields: [userId], references: [id]) // User who initiated the transaction
-  userId              String
-  createdAt           DateTime @default(now())
+  id               String   @id
+  amount           Float    @default(0)
+  senderWallet     Wallet   @relation("FromWallet", fields: [senderWalletId], references: [id])
+  senderWalletId   String
+  recieverWallet   Wallet   @relation("ToWallet", fields: [recieverWalletId], references: [id])
+  recieverWalletId String
+  approvedBy       Admin?   @relation("Approval", fields: [approvedById], references: [id])
+  approvedById     String?
+  user             User     @relation(fields: [userId], references: [id])
+  userId           String
+  approved         Boolean  @default(true)
+  createdAt        DateTime @default(now())
 }
 
 model Admin {
