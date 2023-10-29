@@ -31,7 +31,7 @@ export class AuthController {
 
   @UseGuards(AuthGuard("jwt"))
   @Get("me")
-  async getMe(@GetUser("isAdmin") isAdmin: boolean){
-    return {isAdmin};
+  async getMe(@GetUser() user:{id:string,isAdmin:boolean}){
+    return user;
   }
 }

@@ -24,15 +24,16 @@ export class UserJwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
     if (user) {
       delete user.password_hash;
-      return user;
+      const {id,isAdmin} = user;
+      return {id,isAdmin};
     } else {
       const admin = await this.repositoryService.admin.findUnique({
         where: {
           id: payload.id,
         },
       });
-      delete admin.password_hash;
-      return admin;
+      const {id,isAdmin} = admin
+      return {id,isAdmin};
     }
   }
 }

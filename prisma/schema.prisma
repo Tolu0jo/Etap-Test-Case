@@ -25,9 +25,9 @@ model User {
 model Wallet {
   id                   String        @id
   currency             String
-  balance              Float
-  owner                User          @relation(fields: [ownerId], references: [id]) // User who owns the wallet
-  ownerId              String
+  balance              Float         @default(0)
+  user                User          @relation(fields: [userId], references: [id]) // User who owns the wallet
+  userId              String
   transfers            Transaction[] @relation("FromWallet")
   receivedTransactions Transaction[] @relation("ToWallet")
   createdAt            DateTime      @default(now())
