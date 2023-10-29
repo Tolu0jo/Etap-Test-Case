@@ -7,7 +7,7 @@ export class AuthController{
     constructor(private authService: AuthService){}
 
     @Post("/signup/admin")
-    async admiSignup(@Body()){
+    async admiSignup(){
 
     }
 }
