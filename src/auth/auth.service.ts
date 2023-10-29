@@ -114,8 +114,10 @@ export class AuthService {
       throw new Error(error.message);
     }
   }
+
   async signToken(id: string): Promise<{ token: string }> {
-    const payload = {
+    try {
+       const payload = {
       id,
     };
     const secret = this.configsService.get('JWT_SECRET');
@@ -125,5 +127,8 @@ export class AuthService {
     });
 
     return { token: token };
+    } catch (error) {
+      throw new Error(error.message)
+    }
   }
 }
