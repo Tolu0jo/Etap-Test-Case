@@ -1,7 +1,8 @@
-import { Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Query, UseGuards } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/auth/decorator/get-user.decorator';
+import { TransactionsQueryDto } from './dto/transaction-query.dto';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('admin')
@@ -27,4 +28,9 @@ export class AdminController {
   ) {
     return await this.adminService.approveTransaction(txnId, userInfo);
   }
+  @Get('payment-summary' )
+ getTransactionsByMonth(@Query() query: TransactionsQueryDto,
+@GetUser() userInfo: IUser,) {
+  return this.adminService.getTransactionsByMonth(query,userInfo);
+}
 }

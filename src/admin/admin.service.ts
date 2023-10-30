@@ -1,6 +1,7 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { RepositoryService } from 'src/Repository/repository.service';
 import { Status } from 'src/interface/enum';
+import { TransactionsQueryDto } from './dto/transaction-query.dto';
 
 @Injectable()
 export class AdminService {
@@ -51,8 +52,11 @@ export class AdminService {
       const transaction = await this.repository.transaction.findUnique({
         where: {
           id: txnId,
+          status:Status.PENDING
         },
       });
+
+      if(!transaction) throw new NotFoundException("Transactions Already Approved or Not Found");
 
       const { senderWalletId, recieverWalletId, amount } = transaction;
 
@@ -105,5 +109,25 @@ export class AdminService {
     } catch (error) {
         throw new Error(error.message)
     }
+  }
+
+  async getTransactionsByMonth(query: TransactionsQueryDto,userInfo:IUser) {
+    const { year, month } = query;
+    const {isAdmin } = userInfo;
+    if(!isAdmin)throw new UnauthorizedException();
+  
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0);
+  
+    const transactions = await this.repository.transaction.findMany({
+      where: {
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+    });
+  
+    return transactions;
   }
 }
