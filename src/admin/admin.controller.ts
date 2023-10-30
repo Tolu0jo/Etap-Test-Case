@@ -21,7 +21,10 @@ export class AdminController {
     return await this.adminService.getAllPendingTransactions(userInfo);
   }
   @Patch('approve-transaction/:txnId')
-  async approveTransaction(@Param('txnId') txnId: string, userInfo: IUser) {
+  async approveTransaction(
+    @Param('txnId') txnId: string,
+    @GetUser() userInfo: IUser,
+  ) {
     return await this.adminService.approveTransaction(txnId, userInfo);
   }
 }

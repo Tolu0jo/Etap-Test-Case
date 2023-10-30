@@ -34,11 +34,11 @@ export class TransactionController {
     return await this.transactionService.getTransaction(txnId, userInfo);
   }
 
-  @Get('pending')
+  @Get('/pending')
   async getPendingTransactions(@GetUser() userInfo: IUser) {
     return await this.transactionService.getPendingTransactions(userInfo);
   }
-  @Get('approved')
+  @Get('/approved')
   async getApprovedTransactions(@GetUser() userInfo: IUser) {
     return await this.transactionService.getApprovedTransactions(userInfo);
   }

@@ -7,6 +7,7 @@ import {
 import { RepositoryService } from 'src/Repository/repository.service';
 import { TransferDto } from './dto/transfer.dto';
 import { v4 as uuidv4 } from 'uuid';
+import { Status } from 'src/interface/enum';
 
 @Injectable()
 export class TransactionService {
@@ -47,7 +48,7 @@ export class TransactionService {
         );
       if (amount <= 1_000_000) {
         const senderBalance = senderWallet.balance - amount;
-        const senderDebitedWallet = await this.repository.wallet.update({
+        await this.repository.wallet.update({
           where: {
             id: senderWalletId,
             userId: id,
@@ -59,7 +60,7 @@ export class TransactionService {
 
         const recieverBalance = senderWallet.balance + amount;
 
-        const receiverCreditedWallet = await this.repository.wallet.update({
+        await this.repository.wallet.update({
           where: {
             id: recieverWalletId,
           },
@@ -87,7 +88,7 @@ export class TransactionService {
             recieverWalletId,
             amount,
             userId: id,
-            status: 'PENDING',
+            status: Status.PENDING,
           },
         });
         return pendingTransaction;
@@ -109,8 +110,7 @@ export class TransactionService {
 
   async getTransaction(txnId: string, userInfo: IUser) {
     const { id, isAdmin } = userInfo;
-    if (isAdmin)
-      throw new UnauthorizedException();
+    if (isAdmin) throw new UnauthorizedException();
     return await this.repository.transaction.findUnique({
       where: {
         id: txnId,
@@ -122,14 +122,14 @@ export class TransactionService {
   async getPendingTransactions(userInfo: IUser) {
     try {
       const { id, isAdmin } = userInfo;
-      if (isAdmin)
-        throw new UnauthorizedException();
+      if (isAdmin) throw new UnauthorizedException();
       return await this.repository.transaction.findMany({
         where: {
           userId: id,
-          status: "PENDING",
+          status: Status.PENDING,
         },
       });
+      
     } catch (error) {
       throw new Error(error.message);
     }
@@ -138,15 +138,14 @@ export class TransactionService {
   async getApprovedTransactions(userInfo: IUser) {
     try {
       const { id, isAdmin } = userInfo;
-      if (isAdmin)
-        throw new UnauthorizedException();
-      const transactions =await this.repository.transaction.findMany({
+      if (isAdmin) throw new UnauthorizedException();
+      const transactions = await this.repository.transaction.findMany({
         where: {
           userId: id,
-          status: 'APPROVED',
+          status: Status.APPROVED,
         },
       });
-      return transactions
+      return transactions;
     } catch (error) {
       throw new Error(error.message);
     }
