@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, HttpException, HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { RepositoryService } from 'src/Repository/repository.service';
 import { AuthDto } from './dto/auth.dto';
 import * as bcrypt from 'bcryptjs';
@@ -20,7 +20,7 @@ export class AuthService {
       const { phoneNumber, password } = dto;
       const existingAdmin = await this.repositoryService.admin.findMany();
       if (existingAdmin && existingAdmin.length > 0) {
-        throw new ForbiddenException('Admin already exists');
+        return new HttpException('Admin already exists',HttpStatus.CONFLICT);
       } else {
         const salt = await bcrypt.genSalt();
         const password_hash = await this.passwordHash(password, salt);
@@ -38,7 +38,7 @@ export class AuthService {
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
-          throw new ForbiddenException('Credetials taken');
+          return new HttpException('Credetials taken',HttpStatus.CONFLICT);
         }
       }
       throw error;
@@ -63,7 +63,7 @@ export class AuthService {
       return user;
     } catch (error) {
       if (error.code === '23505') {
-        throw new ConflictException('User already exists');
+        return new HttpException('User already exist',HttpStatus.CONFLICT);
       } else {
         throw new InternalServerErrorException();
       }
@@ -75,7 +75,7 @@ export class AuthService {
     return hashedPassword;
   }
 
-  async adminSignIn(dto: AuthDto): Promise<{ token: string }> {
+  async adminSignIn(dto: AuthDto) {
     try {
       const { phoneNumber, password } = dto;
       const admin = await this.repositoryService.admin.findFirst({
@@ -88,14 +88,14 @@ export class AuthService {
       if (admin && isMatch) {
         return await this.signToken(id);
       } else {
-        throw new ForbiddenException('Invalid Credentials');
+       return new HttpException('Invalid Credentials',HttpStatus.BAD_REQUEST);
       }
     } catch (error) {
       throw new Error(error.message);
     }
   }
 
-  async userSignIn(dto: AuthDto): Promise<{ token: string }> {
+  async userSignIn(dto: AuthDto) {
     try {
       const { phoneNumber, password } = dto;
       const user = await this.repositoryService.user.findUnique({
@@ -108,7 +108,7 @@ export class AuthService {
       if (user && isMatch) {
         return await this.signToken(id);
       } else {
-        throw new ForbiddenException('Invalid Credentials');
+       return new HttpException('Invalid Credentials',HttpStatus.BAD_REQUEST);
       }
     } catch (error) {
       throw new Error(error.message);

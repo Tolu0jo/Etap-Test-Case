@@ -1,4 +1,11 @@
-import { Controller, Get, Param, Patch, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/auth/decorator/get-user.decorator';
@@ -13,14 +20,20 @@ export class AdminController {
   async getTransactions(@GetUser() userInfo: IUser) {
     return await this.adminService.getAllTransactions(userInfo);
   }
-  @Get('approved')
+
+  @Get('transaction/:id')
+  async getTransaction(@GetUser() userInfo: IUser, @Param('id') id: string) {
+    return await this.adminService.getTransaction(userInfo,id);
+  }
+  @Get('approved-transaction')
   async getApprovedTransactions(@GetUser() userInfo: IUser) {
     return await this.adminService.getAllApprovedTransactions(userInfo);
   }
-  @Get('pending')
+  @Get('pending-transaction')
   async getPendingTransactions(@GetUser() userInfo: IUser) {
     return await this.adminService.getAllPendingTransactions(userInfo);
   }
+
   @Patch('approve-transaction/:txnId')
   async approveTransaction(
     @Param('txnId') txnId: string,
@@ -28,9 +41,19 @@ export class AdminController {
   ) {
     return await this.adminService.approveTransaction(txnId, userInfo);
   }
-  @Get('payment-summary' )
- getTransactionsByMonth(@Query() query: TransactionsQueryDto,
-@GetUser() userInfo: IUser,) {
-  return this.adminService.getTransactionsByMonth(query,userInfo);
-}
+  @Get('payment-summary')
+  async getTransactionsByMonth(
+    @Query() query: TransactionsQueryDto,
+    @GetUser() userInfo: IUser,
+  ) {
+    return await this.adminService.getPaymentByMonth(query, userInfo);
+  }
+  @Get('payments')
+  async getPayments(@GetUser() userInfo: IUser) {
+    return await this.adminService.getPaymentSumarries(userInfo);
+  }
+  @Get('payment/:id')
+  async getPayment(@GetUser() userInfo: IUser, @Param('id') id: string) {
+  return await this.adminService.getPayment(userInfo, id);
+  }
 }

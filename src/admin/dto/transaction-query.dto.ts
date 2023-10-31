@@ -1,11 +1,11 @@
-import { IsInt, IsPositive } from 'class-validator';
+import {IsNotEmpty,IsString } from 'class-validator';
 
 export class TransactionsQueryDto {
-  @IsInt()
-  @IsPositive()
-  year: number;
+  @IsString()
+  @IsNotEmpty()
+  year: string;
 
-  @IsInt()
-  @IsPositive()
-  month: number;
+  @IsString()
+  @IsNotEmpty()
+  month: string;
 }

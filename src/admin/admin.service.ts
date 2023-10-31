@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+    HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { RepositoryService } from 'src/Repository/repository.service';
 import { Status } from 'src/interface/enum';
 import { TransactionsQueryDto } from './dto/transaction-query.dto';
@@ -10,17 +16,51 @@ export class AdminService {
   async getAllTransactions(userInfo: IUser) {
     try {
       const { isAdmin } = userInfo;
-      if (!isAdmin) throw new UnauthorizedException();
+      if (!isAdmin)  return new HttpException("Authorised User",HttpStatus.UNAUTHORIZED);  
       return await this.repository.transaction.findMany();
     } catch (error) {
       throw new Error(error.message);
     }
   }
+  async getTransaction(userInfo: IUser, id: string) {
+    try {
+      const { isAdmin } = userInfo;
+      if (!isAdmin) return new HttpException("Authorised User",HttpStatus.UNAUTHORIZED);
+      return await this.repository.transaction.findUnique({
+        where: {
+          id,
+        },
+      });
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
+
+
+  async getPayment(userInfo: IUser, id: string) {
+    try {
+      const { isAdmin } = userInfo;
+      if (!isAdmin) return new HttpException("Authorised User",HttpStatus.UNAUTHORIZED);
+      return await this.repository.paymentSummary.findUnique({
+        where: {
+          id,
+        },
+      });
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
+
+  async getPaymentSumarries(userInfo: IUser) {
+    const { isAdmin } = userInfo;
+    if (!isAdmin)return new HttpException("Authorised User",HttpStatus.UNAUTHORIZED);
+    return await this.repository.paymentSummary.findMany();
+  }
 
   async getAllPendingTransactions(userInfo: IUser) {
     try {
       const { isAdmin } = userInfo;
-      if (!isAdmin) throw new UnauthorizedException();
+      if (!isAdmin) return new HttpException("Authorised User",HttpStatus.UNAUTHORIZED);
       return await this.repository.transaction.findMany({
         where: {
           status: Status.PENDING,
@@ -31,11 +71,10 @@ export class AdminService {
     }
   }
 
-
   async getAllApprovedTransactions(userInfo: IUser) {
     try {
       const { isAdmin } = userInfo;
-      if (!isAdmin) throw new UnauthorizedException();
+      if (!isAdmin) return new HttpException("Authorised User",HttpStatus.UNAUTHORIZED);
       return await this.repository.transaction.findMany({
         where: {
           status: Status.APPROVED,
@@ -48,17 +87,20 @@ export class AdminService {
 
   async approveTransaction(txnId: string, userInfo: IUser) {
     try {
-      const { id,isAdmin } = userInfo;
-      if (!isAdmin) throw new UnauthorizedException();
+      const { id, isAdmin } = userInfo;
+      if (!isAdmin) return new HttpException("Authorised User",HttpStatus.UNAUTHORIZED);
 
       const transaction = await this.repository.transaction.findUnique({
         where: {
           id: txnId,
-          status:Status.PENDING
+          status: Status.PENDING,
         },
       });
 
-      if(!transaction) throw new NotFoundException("Transactions Already Approved or Not Found");
+      if (!transaction)
+         return new HttpException(
+          'Transactions Already Approved or Not Found',HttpStatus.BAD_REQUEST
+        );
 
       const { senderWalletId, recieverWalletId, amount } = transaction;
 
@@ -101,27 +143,26 @@ export class AdminService {
           },
           data: {
             status: Status.APPROVED,
-            approvedById:id
+            approvedById: id,
           },
         });
         return approvedtransaction;
-      }else{
-        throw new UnauthorizedException("Only admin can approve transactions")
+      } else {
+        return new HttpException('Only admin can approve transactions',HttpStatus.UNAUTHORIZED);
       }
     } catch (error) {
-        throw new Error(error.message)
+      throw new Error(error.message);
     }
   }
 
-  async getTransactionsByMonth(query: TransactionsQueryDto,userInfo:IUser) {
+  async getPaymentByMonth(query: TransactionsQueryDto, userInfo: IUser) {
     const { year, month } = query;
-    const {isAdmin } = userInfo;
-    if(!isAdmin)throw new UnauthorizedException();
-  
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0);
-  
-    const transactions = await this.repository.transaction.findMany({
+    const { isAdmin } = userInfo;
+    if (!isAdmin) return new HttpException("Authorised User",HttpStatus.UNAUTHORIZED);
+    const startDate = new Date(+year, +month - 1, 1);
+    const endDate = new Date(+year, +month, 0);
+
+    const transactions = await this.repository.paymentSummary.findMany({
       where: {
         createdAt: {
           gte: startDate,
@@ -129,7 +170,7 @@ export class AdminService {
         },
       },
     });
-  
+
     return transactions;
   }
 }

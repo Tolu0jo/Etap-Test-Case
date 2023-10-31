@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { FundWalletDto, CreateWalletDto } from './dto/wallet.dto';
 import { NotFoundError } from 'rxjs';
 import { PayStackService } from 'src/paystack/payStack.service';
+import { HttpException, HttpStatus } from '@nestjs/common';
 @Injectable()
 export class WalletService {
   constructor(
@@ -22,14 +23,14 @@ export class WalletService {
       const { id, isAdmin } = user;
       const currency = walletDto.currency;
       if (isAdmin) {
-        throw new ConflictException('Admin cannot create wallet');
+      return new HttpException("Admin cannot create wallet",HttpStatus.UNAUTHORIZED);  
       } else {
         const wallets = await this.repositoryService.wallet.findMany({
           where: { userId: id },
         });
         const isExist = wallets.find((wallet) => wallet.currency === currency);
         if (isExist) {
-          throw new ConflictException(`Wallet with ${currency} already exists`);
+        return new HttpException(`Wallet with ${currency} already exists`, HttpStatus.BAD_REQUEST);;
         } else {
           const wallet = await this.repositoryService.wallet.create({
             data: {
@@ -54,7 +55,7 @@ export class WalletService {
     try {
       const { id, isAdmin } = user;
       const { currency } = fundWalletDto;
-      if (isAdmin) throw new UnauthorizedException('Admin cannot fund wallet');
+      if (isAdmin)return new HttpException('Admin cannot fund wallet', HttpStatus.UNAUTHORIZED);   
 
       const wallet = await this.repositoryService.wallet.findFirst({
         where: {
@@ -63,14 +64,15 @@ export class WalletService {
         },
       });
 
-      if (wallet.currency !== currency)
-        throw new ConflictException('wrong currency');
+      if (wallet.currency !== currency) return new HttpException('Wrong wallet Currency', HttpStatus.BAD_REQUEST);
+
 
       const paymentData = await this.payStackService.initiatePayment(
         id,
         walletId,
         fundWalletDto,
       );
+      if(!paymentData) return new HttpException("Currency not supported by paystack",HttpStatus.NOT_FOUND)
 
       return paymentData;
     } catch (error) {
@@ -81,6 +83,7 @@ export class WalletService {
   async fundWalletVerification(trxref: string) {
     try {
       const verify = await this.payStackService.verifyPayment(trxref);
+      if(verify.status === 'success') {
       const { id, walletId, amount } = verify.metadata;
       const wallet = await this.repositoryService.wallet.findFirst({
         where: {
@@ -102,9 +105,23 @@ export class WalletService {
         },
       });
 
-      return {fundedWallet,verify};
+      const paymentSummary = await this.repositoryService.paymentSummary.create(
+        {
+          data: {
+            id: uuidv4(),
+            WalletBallance: balance,
+            amount:Number(amount),
+            userId: id,
+            currency: fundedWallet.currency,
+            walletId,
+          },
+        },
+      );
 
-    
+      return { fundedWallet, paymentSummary };
+    }else{
+        return {status:verify.status}
+    }
     } catch (error) {
       throw new Error(error.message);
     }
@@ -113,7 +130,7 @@ export class WalletService {
   async getWallet(user: IUser, walletId: string) {
     try {
       const { id, isAdmin } = user;
-      if (isAdmin) throw new UnauthorizedException('Admin cannot get wallet');
+      if (isAdmin)return new HttpException("Admin does not have  wallet",HttpStatus.UNAUTHORIZED);  
       const wallet = await this.repositoryService.wallet.findFirst({
         where: {
           id: walletId,
@@ -121,7 +138,7 @@ export class WalletService {
         },
       });
       if (!wallet) {
-        throw new NotFoundException(`wallet does not exist`);
+        return new HttpException("Wallet does not exist",HttpStatus.NOT_FOUND)
       } else {
         return wallet;
       }
@@ -133,13 +150,15 @@ export class WalletService {
   async getWallets(user: IUser) {
     try {
       const { id, isAdmin } = user;
-      if (isAdmin) throw new UnauthorizedException('Admin cannot get wallet');
+      if (isAdmin)return new HttpException("Admin does not have wallet",HttpStatus.UNAUTHORIZED);  
       const wallets = await this.repositoryService.wallet.findMany({
         where: {
           userId: id,
         },
       });
       return wallets;
-    } catch (error) {}
+    } catch (error) {
+        throw new Error(error.message);
+    }
   }
 }
