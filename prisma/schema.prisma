@@ -56,13 +56,14 @@ model Admin {
   salt                 String
   isAdmin              Boolean          @default(true)
   approvedTransactions Transaction[]    @relation("Approval")
-  paymentSummaries     PaymentSummary[]
 }
 
 model PaymentSummary {
-  id      String @id
-  admin   Admin  @relation(fields: [adminId], references: [id])
-  adminId String
-  month   Int
-  year    Int
+  id          String @id
+  createdAt   DateTime @default(now())
+  walletId    String 
+  userId      String
+  currency    String
+  amount      Float
+  WalletBallance Float
 }

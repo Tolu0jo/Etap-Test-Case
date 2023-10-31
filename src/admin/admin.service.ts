@@ -30,6 +30,8 @@ export class AdminService {
       throw new Error(error.message);
     }
   }
+
+
   async getAllApprovedTransactions(userInfo: IUser) {
     try {
       const { isAdmin } = userInfo;

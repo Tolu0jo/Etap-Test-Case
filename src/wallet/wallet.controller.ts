@@ -14,21 +14,22 @@ import { GetUser } from 'src/auth/decorator/get-user.decorator';
 import { CreateWalletDto, FundWalletDto } from './dto/wallet.dto';
 
 @Controller('wallet')
-@UseGuards(AuthGuard('jwt'))
 export class WalletController {
   constructor(private walletService: WalletService) {}
 
+  @UseGuards(AuthGuard('jwt'))
   @Get()
   async getWallets(@GetUser() user: IUser) {
     return await this.walletService.getWallets(user);
   }
 
-  @Get("/callback")
-  async getWalle(@Query("trxref") trxref:string) {
-    console.log("success")
-    return 'sucess'
+  
+  @Get('/callback')
+  async fundVerification(@Query('trxref') trxref: string) {
+    return await this.walletService.fundWalletVerification(trxref);
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Post('/create')
   async createWallet(
     @GetUser() user: IUser,
@@ -37,6 +38,7 @@ export class WalletController {
     return await this.walletService.createWallet(user, walletDto);
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Patch(':walletId')
   async fundWallet(
     @GetUser() user: IUser,
@@ -45,9 +47,9 @@ export class WalletController {
   ) {
     return await this.walletService.fundMyWallet(user, walletId, fundWalletDto);
   }
-
+  @UseGuards(AuthGuard('jwt'))
   @Get(':walletId')
   async getWallet(@GetUser() user: IUser, @Param('walletId') walletId: string) {
-   // return await this.walletService.getWallet(user, walletId);
+    return await this.walletService.getWallet(user, walletId);
   }
 }

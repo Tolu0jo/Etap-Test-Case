@@ -15,19 +15,21 @@ export class PayStackService {
 
   async initiatePayment(id:String, walletId: string, fundWalletDto:FundWalletDto) {
     try {
+        const baseUrl=this.configService.get<string>(`BASE_URL`)
         const{currency, amount, email}=fundWalletDto
         const response = await this.paystack.transaction.initialize({
             amount: amount * 100,
             email,
             currency,
-            callback_url: "http://localhost:300/wallet/callback",
+            redirect_url:`${baseUrl}\wallet\callback`,
             metadata:{
                id,
-               walletId
+               walletId,
+               amount
             }
           }
           );
-      console.log(response.data);
+
       return response.data;
     } catch (error) {
       throw new Error(error.message);
