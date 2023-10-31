@@ -9,9 +9,11 @@ import { RepositoryService } from 'src/Repository/repository.service';
 import { v4 as uuidv4 } from 'uuid';
 import { FundWalletDto, CreateWalletDto } from './dto/wallet.dto';
 import { NotFoundError } from 'rxjs';
+import { PayStackService } from 'src/paystack/payStack.service';
 @Injectable()
 export class WalletService {
-  constructor(private repositoryService: RepositoryService) {}
+  constructor(private repositoryService: RepositoryService,
+    private payStackService:PayStackService) {}
 
   async createWallet(user: IUser, walletDto: CreateWalletDto) {
     try {
@@ -41,42 +43,56 @@ export class WalletService {
       throw new Error(error.message);
     }
   }
+
+
   async fundMyWallet(user: IUser, walletId:string, fundWalletDto: FundWalletDto){
     try {
         const { id, isAdmin } = user;
-        const{currency, amount}=fundWalletDto
-        if(isAdmin) throw new UnauthorizedException("Admin cannot fund wallet")
+        const{currency}=fundWalletDto
+        if(isAdmin) throw new UnauthorizedException("Admin cannot fund wallet");
+
         const wallet = await this.repositoryService.wallet.findFirst({
             where:{
                 id:walletId,
                 userId:id
             }
            })
-        if(!wallet)throw new NotFoundException(`wallet does not exist`)
-        const existingBalance= wallet.balance
-        const balance = existingBalance + amount;
-      
-      
+
         if(wallet.currency !== currency) throw new ConflictException("wrong currency")
 
-           const fundedWallet = await this.repositoryService.wallet.update({
-            where:{
-                id:walletId,
-                userId:id
-            },
-            data:{
-               balance
-            }
-        })
+       const paymentData = await this.payStackService.initiatePayment(id,walletId,fundWalletDto)   
+       
+        return paymentData
 
-           return fundedWallet;
-          
-        
+        // if(!wallet)throw new NotFoundException(`wallet does not exist`)
+    //     const existingBalance= wallet.balance
+    //     const balance = existingBalance + amount;
+      
+      
+    //     if(wallet.currency !== currency) throw new ConflictException("wrong currency")
 
+    //        const fundedWallet = await this.repositoryService.wallet.update({
+    //         where:{
+    //             id:walletId,
+    //             userId:id
+    //         },
+    //         data:{
+    //            balance
+    //         }
+    //     })
+
+    // return fundedWallet;
     } catch (error) {
-        throw new Error(error.message);
+    throw new Error(error.message);
     }
+  }
 
+  async fundWalletVerification(){
+    try {
+        const verify = await this.payStackService
+    } catch (error) {
+        
+    }
   }
 
   async getWallet(user: IUser, walletId:string){

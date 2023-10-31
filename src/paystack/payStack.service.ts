@@ -1,30 +1,45 @@
-// payment.service.ts
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-// import axios from 'axios';
-import { Paystack } from 'paystack';
+import { FundWalletDto } from 'src/wallet/dto/wallet.dto';
+
+const Paystack = require('paystack');
 
 @Injectable()
 export class PayStackService {
-  private readonly paystack: Paystack;
+  private readonly paystack = Paystack;
 
-  constructor(private readonly configService: ConfigService) {
-    this.paystack = new Paystack({
-      apiKey: this.configService.get<string>('PAYSTACK_SECRET_KEY'),
-    });
+  constructor(private configService: ConfigService) {
+    this.paystack = Paystack(this.configService.get<string>('PAYSTACK_SECRET_KEY'),
+    );
   }
 
-  async initiatePayment(amount: number, phoneNumber: string){
-    const response = await this.paystack.transaction.initialize({
-      amount: amount * 100, 
-      phoneNumber,
-    });
-
-    return response.data;
+  async initiatePayment(id:String, walletId: string, fundWalletDto:FundWalletDto) {
+    try {
+        const{currency, amount, email}=fundWalletDto
+        const response = await this.paystack.transaction.initialize({
+            amount: amount * 100,
+            email,
+            currency,
+            callback_url: "http://localhost:300/wallet/callback",
+            metadata:{
+               id,
+               walletId
+            }
+          }
+          );
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.message);
+    }
   }
 
-  async verifyPayment(reference: string): Promise<any> {
-    const response = await this.paystack.transaction.verify(reference);
-    return response.data;
+  async verifyPayment(reference: string) {
+    try {
+      const response = await this.paystack.transaction.verify(reference);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.message);
+    }
   }
 }

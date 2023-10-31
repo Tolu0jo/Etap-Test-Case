@@ -1,35 +1,53 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/auth/decorator/get-user.decorator';
 import { CreateWalletDto, FundWalletDto } from './dto/wallet.dto';
 
 @Controller('wallet')
-@UseGuards(AuthGuard("jwt"))
+@UseGuards(AuthGuard('jwt'))
 export class WalletController {
   constructor(private walletService: WalletService) {}
 
   @Get()
-  async getWallets(@GetUser() user:IUser){
-   return await this.walletService.getWallets(user)
+  async getWallets(@GetUser() user: IUser) {
+    return await this.walletService.getWallets(user);
   }
 
-  @Post("/create")
-  async createWallet(@GetUser() user: IUser, @Body() walletDto: CreateWalletDto) {
+  @Get("/callback")
+  async getWalle(@Query("trxref") trxref:string) {
+    console.log("success")
+    return 'sucess'
+  }
+
+  @Post('/create')
+  async createWallet(
+    @GetUser() user: IUser,
+    @Body() walletDto: CreateWalletDto,
+  ) {
     return await this.walletService.createWallet(user, walletDto);
   }
 
-  @Patch(":walletId")
-  async fundWallet(@GetUser() user: IUser,
-                   @Param("walletId") walletId:string,
-                   @Body()fundWalletDto:FundWalletDto){
-    return await this.walletService.fundMyWallet(user,walletId,fundWalletDto);
+  @Patch(':walletId')
+  async fundWallet(
+    @GetUser() user: IUser,
+    @Param('walletId') walletId: string,
+    @Body() fundWalletDto: FundWalletDto,
+  ) {
+    return await this.walletService.fundMyWallet(user, walletId, fundWalletDto);
   }
 
-  @Get(":walletId")
-  async getWallet(@GetUser() user:IUser,
-                   @Param("walletId") walletId:string){
-  
- return await this.walletService.getWallet(user,walletId);
- }
+  @Get(':walletId')
+  async getWallet(@GetUser() user: IUser, @Param('walletId') walletId: string) {
+   // return await this.walletService.getWallet(user, walletId);
+  }
 }
