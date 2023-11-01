@@ -1,5 +1,7 @@
 import {
   ConflictException,
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -22,30 +24,26 @@ export class TransactionService {
       const { recieverWalletId, amount } = transferDto;
       const { id, isAdmin } = userInfo;
 
-      if (isAdmin)
-        throw new UnauthorizedException('Admin cannot make wallet transfers');
+      if (isAdmin||!id)return new HttpException("Unauthorised User, sign in as a user",HttpStatus.UNAUTHORIZED);  
       const senderWallet = await this.repository.wallet.findFirst({
         where: {
           id: senderWalletId,
           userId: id,
         },
       });
-      if (!senderWallet) throw new NotFoundException(`wallet does not exist`);
+      if (!senderWallet) return new HttpException(`wallet does not exist`,HttpStatus.NOT_FOUND);
 
       const recieverWallet = await this.repository.wallet.findUnique({
         where: {
           id: recieverWalletId,
         },
       });
-      if (!recieverWallet) throw new NotFoundException(`wallet does not exist`);
+      if (!recieverWallet) return new HttpException(`wallet does not exist`,HttpStatus.NOT_FOUND);
       if (senderWallet.currency !== recieverWallet.currency)
-        throw new ConflictException(
-          'reciever wallet should accept same currency',
-        );
+      return new HttpException('reciever wallet should accept same currency',HttpStatus.CONFLICT);
+   
       if (amount > senderWallet.balance)
-        throw new ConflictException(
-          'Insufficient balance to make the transaction',
-        );
+      return new HttpException('Insufficient balance to make the transaction',HttpStatus.CONFLICT);
       if (amount <= 1_000_000) {
         const senderBalance = senderWallet.balance - amount;
         await this.repository.wallet.update({
@@ -94,29 +92,38 @@ export class TransactionService {
         return pendingTransaction;
       }
     } catch (error) {
-      throw new Error(error.message);
+        return new HttpException(`${error.message}`,HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
   async getTransactions(userInfo: IUser) {
-    const { id, isAdmin } = userInfo;
-    if (isAdmin)
-      throw new UnauthorizedException('Admin cannot make wallet transfers');
+    try {
+        const { id, isAdmin } = userInfo;
+    if (isAdmin||!id)return new HttpException("Unauthorised User, sign in as a user",HttpStatus.UNAUTHORIZED);
     return await this.repository.transaction.findMany({
       where: {
         userId: id,
       },
     });
+    } catch (error) {
+        return new HttpException(`${error.message}`,HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    
   }
 
   async getTransaction(txnId: string, userInfo: IUser) {
-    const { id, isAdmin } = userInfo;
+    try {
+       const { id, isAdmin } = userInfo;
     if (isAdmin) throw new UnauthorizedException();
     return await this.repository.transaction.findUnique({
       where: {
         id: txnId,
         userId: id,
       },
-    });
+    });  
+    } catch (error) {
+        return new HttpException(`${error.message}`,HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+   
   }
 
   async getPendingTransactions(userInfo: IUser) {
@@ -131,14 +138,14 @@ export class TransactionService {
       });
       
     } catch (error) {
-      throw new Error(error.message);
+        return new HttpException(`${error.message}`,HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
   async getApprovedTransactions(userInfo: IUser) {
     try {
       const { id, isAdmin } = userInfo;
-      if (isAdmin) throw new UnauthorizedException();
+      if (isAdmin||!id)return new HttpException("Unauthorised User, sign in as a user",HttpStatus.UNAUTHORIZED);
       const transactions = await this.repository.transaction.findMany({
         where: {
           userId: id,
@@ -147,7 +154,7 @@ export class TransactionService {
       });
       return transactions;
     } catch (error) {
-      throw new Error(error.message);
+        return new HttpException(`${error.message}`,HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

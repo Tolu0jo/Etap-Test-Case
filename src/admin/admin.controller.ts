@@ -43,10 +43,9 @@ export class AdminController {
   }
   @Get('payment-summary')
   async getTransactionsByMonth(
-    @Query() query: TransactionsQueryDto,
     @GetUser() userInfo: IUser,
   ) {
-    return await this.adminService.getPaymentByMonth(query, userInfo);
+    return await this.adminService.getMonthlyPaymentSummaries( userInfo);
   }
   @Get('payments')
   async getPayments(@GetUser() userInfo: IUser) {

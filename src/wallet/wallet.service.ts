@@ -22,8 +22,8 @@ export class WalletService {
     try {
       const { id, isAdmin } = user;
       const currency = walletDto.currency;
-      if (isAdmin) {
-      return new HttpException("Admin cannot create wallet",HttpStatus.UNAUTHORIZED);  
+      if (isAdmin ||!id) {
+       return new HttpException("Unauthorised User, sign in as a user",HttpStatus.UNAUTHORIZED);  
       } else {
         const wallets = await this.repositoryService.wallet.findMany({
           where: { userId: id },
@@ -43,7 +43,7 @@ export class WalletService {
         }
       }
     } catch (error) {
-      throw new Error(error.message);
+        return new HttpException(`${error.message}`,HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -55,7 +55,7 @@ export class WalletService {
     try {
       const { id, isAdmin } = user;
       const { currency } = fundWalletDto;
-      if (isAdmin)return new HttpException('Admin cannot fund wallet', HttpStatus.UNAUTHORIZED);   
+      if (isAdmin||!id)return new HttpException("Unauthorised User, sign in as a user",HttpStatus.UNAUTHORIZED);   
 
       const wallet = await this.repositoryService.wallet.findFirst({
         where: {
@@ -76,7 +76,7 @@ export class WalletService {
 
       return paymentData;
     } catch (error) {
-      throw new Error(error.message);
+        return new HttpException(`${error.message}`,HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -106,7 +106,7 @@ export class WalletService {
         },
       });
      
-     const existingPayment = await this.repositoryService.paymentSummary.findFirst({
+     const existingPayment = await this.repositoryService.paymentDetails.findFirst({
         where:{
             pstackId:verify.id
         }
@@ -114,7 +114,7 @@ export class WalletService {
 
      if(existingPayment) return new HttpException("Payment has already been verified",HttpStatus.CONFLICT)
 
-      const paymentSummary = await this.repositoryService.paymentSummary.create(
+      const paymentSummary = await this.repositoryService.paymentDetails.create(
         {
           data: {
             id: uuidv4(),
@@ -133,14 +133,14 @@ export class WalletService {
         return {status:verify.status}
     }
     } catch (error) {
-      throw new Error(error.message);
+        return new HttpException(`${error.message}`,HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
   async getWallet(user: IUser, walletId: string) {
     try {
       const { id, isAdmin } = user;
-      if (isAdmin)return new HttpException("Admin does not have  wallet",HttpStatus.UNAUTHORIZED);  
+      if (isAdmin||!id)return new HttpException("Unauthorised User, sign in as a user",HttpStatus.UNAUTHORIZED);  
       const wallet = await this.repositoryService.wallet.findFirst({
         where: {
           id: walletId,
@@ -153,14 +153,14 @@ export class WalletService {
         return wallet;
       }
     } catch (error) {
-      throw new Error(error.message);
+        return new HttpException(`${error.message}`,HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
   async getWallets(user: IUser) {
     try {
       const { id, isAdmin } = user;
-      if (isAdmin)return new HttpException("Admin does not have wallet",HttpStatus.UNAUTHORIZED);  
+      if (isAdmin||!id)return new HttpException("Unauthorised User, sign in as a user",HttpStatus.UNAUTHORIZED);  
       const wallets = await this.repositoryService.wallet.findMany({
         where: {
           userId: id,
@@ -168,7 +168,7 @@ export class WalletService {
       });
       return wallets;
     } catch (error) {
-        throw new Error(error.message);
+        return new HttpException(`${error.message}`,HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

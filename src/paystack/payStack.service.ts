@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { FundWalletDto } from 'src/wallet/dto/wallet.dto';
 
@@ -32,7 +32,7 @@ export class PayStackService {
 
       return response.data;
     } catch (error) {
-      throw new Error(error.message);
+        return new HttpException(`${error.message}`,HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -41,7 +41,7 @@ export class PayStackService {
       const response = await this.paystack.transaction.verify(reference);
       return response.data;
     } catch (error) {
-      throw new Error(error.message);
+        return new HttpException(`${error.message}`,HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

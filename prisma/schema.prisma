@@ -58,8 +58,8 @@ model Admin {
   approvedTransactions Transaction[]    @relation("Approval")
 }
 
-model PaymentSummary {
-  id          String @id
+model PaymentDetails {
+  id          String    @id
   createdAt   DateTime @default(now())
   walletId    String 
   userId      String
@@ -67,4 +67,14 @@ model PaymentSummary {
   amount      Float
   pstackId    Float   
   WalletBallance Float
+}
+
+model PaymentSummary {
+  id         Int       @id @default(autoincrement())
+  month      Int        @default(0)
+  year       Int        @default(0)
+  totalPayments Int     @default(0)
+  successfulPayments Int  @default(0)
+  pendingPayments Int    @default(0)
+  createdAt  DateTime  @default(now())
 }
