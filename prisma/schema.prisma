@@ -71,10 +71,10 @@ model PaymentDetails {
 
 model PaymentSummary {
   id         Int       @id @default(autoincrement())
-  month      Int        @default(0)
-  year       Int        @default(0)
-  totalPayments Int     @default(0)
-  successfulPayments Int  @default(0)
-  pendingPayments Int    @default(0)
+  month      Int        
+  year       Int        
+  totalPayments Int    
+  successfulPayments Int  
+  pendingPayments Int    
   createdAt  DateTime  @default(now())
 }

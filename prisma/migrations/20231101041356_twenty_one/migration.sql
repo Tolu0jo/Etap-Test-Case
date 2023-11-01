@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE "PaymentSummary" ALTER COLUMN "month" DROP DEFAULT,
+ALTER COLUMN "pendingPayments" DROP DEFAULT,
+ALTER COLUMN "successfulPayments" DROP DEFAULT,
+ALTER COLUMN "totalPayments" DROP DEFAULT,
+ALTER COLUMN "year" DROP DEFAULT;
