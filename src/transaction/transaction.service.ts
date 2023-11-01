@@ -113,13 +113,15 @@ export class TransactionService {
   async getTransaction(txnId: string, userInfo: IUser) {
     try {
        const { id, isAdmin } = userInfo;
-    if (isAdmin) throw new UnauthorizedException();
-    return await this.repository.transaction.findUnique({
+       if (isAdmin||!id) return new HttpException("Unauthorised User, sign in as a user",HttpStatus.UNAUTHORIZED);  
+    const transaction=await this.repository.transaction.findUnique({
       where: {
         id: txnId,
         userId: id,
       },
     });  
+    if(!transaction) return new HttpException("Transaction not found", HttpStatus.NOT_FOUND);
+    return transaction;
     } catch (error) {
         return new HttpException(`${error.message}`,HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -129,7 +131,7 @@ export class TransactionService {
   async getPendingTransactions(userInfo: IUser) {
     try {
       const { id, isAdmin } = userInfo;
-      if (isAdmin) throw new UnauthorizedException();
+      if (isAdmin||!id)return new HttpException("Unauthorised User, sign in as a user",HttpStatus.UNAUTHORIZED);  
       return await this.repository.transaction.findMany({
         where: {
           userId: id,

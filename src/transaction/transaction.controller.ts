@@ -26,20 +26,20 @@ export class TransactionController {
   async getAllTransactions(@GetUser() userInfo: IUser) {
     return await this.transactionService.getTransactions(userInfo);
   }
+
+  @Get('pending')
+  async getPendingTransactions(@GetUser() userInfo: IUser) {
+    return await this.transactionService.getPendingTransactions(userInfo);
+  }
+  @Get('approved')
+  async getApprovedTransactions(@GetUser() userInfo: IUser) {
+    return await this.transactionService.getApprovedTransactions(userInfo);
+  }
   @Get(':txnId')
   async getAllTransaction(
     @GetUser() userInfo: IUser,
     @Param('txnId') txnId: string,
   ) {
     return await this.transactionService.getTransaction(txnId, userInfo);
-  }
-
-  @Get('/pending')
-  async getPendingTransactions(@GetUser() userInfo: IUser) {
-    return await this.transactionService.getPendingTransactions(userInfo);
-  }
-  @Get('/approved')
-  async getApprovedTransactions(@GetUser() userInfo: IUser) {
-    return await this.transactionService.getApprovedTransactions(userInfo);
   }
 }

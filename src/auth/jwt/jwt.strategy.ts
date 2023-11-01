@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -17,23 +17,27 @@ export class UserJwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
   async validate(payload: { id: string}) {
-    const user = await this.repositoryService.user.findUnique({
-      where: {
-        id: payload.id,
-      },
-    });
-    if (user) {
-      delete user.password_hash;
-      const {id,isAdmin} = user;
-      return {id,isAdmin};
-    } else {
-      const admin = await this.repositoryService.admin.findUnique({
+    try {
+      const user = await this.repositoryService.user.findUnique({
         where: {
           id: payload.id,
         },
       });
-      const {id,isAdmin} = admin
-      return {id,isAdmin};
+      if (user) {
+        delete user.password_hash;
+        const {id,isAdmin} = user;
+        return {id,isAdmin};
+      } else {
+        const admin = await this.repositoryService.admin.findUnique({
+          where: {
+            id: payload.id,
+          },
+        });
+        const {id,isAdmin} = admin
+        return {id,isAdmin};
+      }  
+    } catch (error) {
+      return new HttpException("UnAuthorized User",HttpStatus.UNAUTHORIZED)
     }
   }
 }

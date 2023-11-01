@@ -63,7 +63,7 @@ export class WalletService {
           userId: id,
         },
       });
-
+      if(!wallet)return new HttpException('Wallet not found', HttpStatus.NOT_FOUND);
       if (wallet.currency !== currency) return new HttpException('Wrong wallet Currency', HttpStatus.BAD_REQUEST);
 
 
@@ -114,7 +114,7 @@ export class WalletService {
 
      if(existingPayment) return new HttpException("Payment has already been verified",HttpStatus.CONFLICT)
 
-      const paymentSummary = await this.repositoryService.paymentDetails.create(
+      const paymentDetails = await this.repositoryService.paymentDetails.create(
         {
           data: {
             id: uuidv4(),
@@ -128,7 +128,7 @@ export class WalletService {
         },
       );
 
-      return { fundedWallet, paymentSummary };
+      return { fundedWallet, paymentDetails };
     }else{
         return {status:verify.status}
     }
@@ -148,7 +148,7 @@ export class WalletService {
         },
       });
       if (!wallet) {
-        return new HttpException("Wallet does not exist",HttpStatus.NOT_FOUND)
+        return new HttpException("Wallet not found",HttpStatus.NOT_FOUND)
       } else {
         return wallet;
       }

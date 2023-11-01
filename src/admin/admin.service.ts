@@ -30,7 +30,7 @@ export class AdminService {
       );
     }
   }
-  async getTransaction(userInfo: IUser, id: string) {
+  async getTransaction(userInfo: IUser, txId: string) {
     try {
       const { id, isAdmin } = userInfo;
       if (!isAdmin || !id)
@@ -38,11 +38,13 @@ export class AdminService {
           'Unauthorised User signin as an admin',
           HttpStatus.UNAUTHORIZED,
         );
-      return await this.repository.transaction.findUnique({
+    const transaction =await this.repository.transaction.findUnique({
         where: {
-          id,
-        },
+          id:txId,
+        }
       });
+    if(!transaction) return new HttpException("transaction not found",HttpStatus.NOT_FOUND);
+    return transaction;
     } catch (error) {
       return new HttpException(
         `${error.message}`,
@@ -51,7 +53,7 @@ export class AdminService {
     }
   }
 
-  async getPayment(userInfo: IUser, id: string) {
+  async getPayment(userInfo: IUser, pId: string) {
     try {
       const { id, isAdmin } = userInfo;
       if (!isAdmin || !id)
@@ -61,7 +63,7 @@ export class AdminService {
         );
       return await this.repository.paymentDetails.findUnique({
         where: {
-          id,
+          id:pId
         },
       });
     } catch (error) {
@@ -72,14 +74,14 @@ export class AdminService {
     }
   }
 
-  async getPaymentSumarries(userInfo: IUser) {
+  async getPayments(userInfo: IUser) {
     const { id, isAdmin } = userInfo;
     if (!isAdmin || !id)
       return new HttpException(
         'Unauthorised User signin as an admin',
         HttpStatus.UNAUTHORIZED,
       );
-    return await this.repository.paymentSummary.findMany();
+    return await this.repository.paymentDetails.findMany();
   }
 
   async getAllPendingTransactions(userInfo: IUser) {

@@ -49,10 +49,10 @@ export class AdminController {
   }
   @Get('payments')
   async getPayments(@GetUser() userInfo: IUser) {
-    return await this.adminService.getPaymentSumarries(userInfo);
+    return await this.adminService.getPayments(userInfo);
   }
   @Get('payment/:id')
-  async getPayment(@GetUser() userInfo: IUser, @Param('id') id: string) {
-  return await this.adminService.getPayment(userInfo, id);
+  async getPayment(@GetUser() userInfo: IUser, @Param('id') pId: string) {
+  return await this.adminService.getPayment(userInfo, pId);
   }
 }
