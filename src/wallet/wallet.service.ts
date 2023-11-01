@@ -83,6 +83,7 @@ export class WalletService {
   async fundWalletVerification(trxref: string) {
     try {
       const verify = await this.payStackService.verifyPayment(trxref);
+      
       if(verify.status === 'success') {
       const { id, walletId, amount } = verify.metadata;
       const wallet = await this.repositoryService.wallet.findFirst({
@@ -104,6 +105,14 @@ export class WalletService {
           balance,
         },
       });
+     
+     const existingPayment = await this.repositoryService.paymentSummary.findFirst({
+        where:{
+            pstackId:verify.id
+        }
+     })
+
+     if(existingPayment) return new HttpException("Payment has already been verified",HttpStatus.CONFLICT)
 
       const paymentSummary = await this.repositoryService.paymentSummary.create(
         {
@@ -114,6 +123,7 @@ export class WalletService {
             userId: id,
             currency: fundedWallet.currency,
             walletId,
+            pstackId:verify.id
           },
         },
       );

@@ -23,9 +23,9 @@ export class WalletController {
     return await this.walletService.getWallets(user);
   }
 
-  
+
   @Get('/callback')
-  async fundVerification(@Query('trxref') trxref: string) {
+  async fundVerification(@Query('reference') trxref: string) {
     return await this.walletService.fundWalletVerification(trxref);
   }
 

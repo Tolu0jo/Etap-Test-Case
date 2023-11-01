@@ -78,7 +78,7 @@ export class AuthService {
   async adminSignIn(dto: AuthDto) {
     try {
       const { phoneNumber, password } = dto;
-      const admin = await this.repositoryService.admin.findFirst({
+      const admin = await this.repositoryService.admin.findUnique({
         where: { phoneNumber },
       });
       const { id, password_hash, salt } = admin;

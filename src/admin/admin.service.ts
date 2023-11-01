@@ -158,10 +158,11 @@ export class AdminService {
   async getPaymentByMonth(query: TransactionsQueryDto, userInfo: IUser) {
     const { year, month } = query;
     const { isAdmin } = userInfo;
+    
     if (!isAdmin) return new HttpException("Authorised User",HttpStatus.UNAUTHORIZED);
     const startDate = new Date(+year, +month - 1, 1);
-    const endDate = new Date(+year, +month, 0);
-
+    const endDate = new Date(+year, +month + 1, 0);
+    console.log(startDate,endDate)
     const transactions = await this.repository.paymentSummary.findMany({
       where: {
         createdAt: {

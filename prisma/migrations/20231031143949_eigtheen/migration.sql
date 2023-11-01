@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "PaymentSummary" ADD COLUMN     "pstackId" DOUBLE PRECISION NOT NULL DEFAULT 0;
